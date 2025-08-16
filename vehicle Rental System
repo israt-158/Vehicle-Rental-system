@@ -1,0 +1,369 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+typedef struct {
+    int id;
+    char type[20];
+    char model[20];
+    int available;
+    float price;
+} Vehicle;
+
+typedef struct Customer {
+    int id;
+    char name[20];
+    char phone[20];
+    struct Customer *next;
+} Customer;
+
+typedef struct {
+    int custId;
+    int vehId;
+} Booking;
+
+#define MAX 50
+Vehicle vehicles[MAX];
+int vehicleCount = 0;
+
+Booking bookingQueue[MAX];
+int front = -1, rear = -1;
+
+int historyStack[MAX];
+int top = -1;
+
+Customer *customerHead = NULL;
+
+void initializeSystem();
+void displayMenu();
+void addVehicle();
+void removeVehicle();
+void searchVehicleByID();
+void searchVehicleByType();
+void displayAllVehicles();
+void bookVehicle();
+void returnVehicle();
+void viewBookingHistory();
+void addCustomer();
+void searchCustomer();
+void displayAllCustomers();
+void updateVehicleDetails();
+void updateCustomerDetails();
+void generateBill();
+void saveDataToFile();
+void loadDataFromFile();
+void clearBookingQueue();
+void exitSystem();
+
+void enqueue(int cid, int vid) {
+    if ((rear + 1) % MAX == front) return;
+    if (front == -1) front = 0;
+    rear = (rear + 1) % MAX;
+    bookingQueue[rear].custId = cid;
+    bookingQueue[rear].vehId = vid;
+}
+Booking dequeue() {
+    Booking b = {-1, -1};
+    if (front == -1) return b;
+    b = bookingQueue[front];
+    if (front == rear) front = rear = -1;
+    else front = (front + 1) % MAX;
+    return b;
+}
+
+
+void pushHistory(int vid) {
+    if (top < MAX - 1) historyStack[++top] = vid;
+}
+void viewBookingHistory() {
+    printf("\n--- Booking History ---\n");
+    for (int i = top; i >= 0; i--) {
+        printf("Vehicle ID: %d\n", historyStack[i]);
+    }
+}
+
+void initializeSystem() {
+    vehicleCount = 3;
+    vehicles[0] = (Vehicle){1, "Car", "Toyota", 1, 50.0};
+    vehicles[1] = (Vehicle){2, "Bike", "Yamaha", 1, 20.0};
+    vehicles[2] = (Vehicle){3, "Truck", "Volvo", 1, 100.0};
+    printf("System initialized with sample data.\n");
+}
+
+void addVehicle() {
+    Vehicle v;
+    v.id = vehicleCount + 1;
+    printf("Enter type: ");
+    scanf("%s", v.type);
+    printf("Enter model: ");
+    scanf("%s", v.model);
+    printf("Enter price per day: ");
+    scanf("%f", &v.price);
+    v.available = 1;
+    vehicles[vehicleCount++] = v;
+    printf("Vehicle added!\n");
+}
+
+void removeVehicle() {
+    int id;
+    printf("Enter vehicle ID to remove: ");
+    scanf("%d", &id);
+    for (int i = 0; i < vehicleCount; i++) {
+        if (vehicles[i].id == id) {
+            for (int j = i; j < vehicleCount - 1; j++)
+                vehicles[j] = vehicles[j + 1];
+            vehicleCount--;
+            printf("Vehicle removed.\n");
+            return;
+        }
+    }
+    printf("Vehicle not found.\n");
+}
+
+void searchVehicleByID() {
+    int id;
+    printf("Enter vehicle ID: ");
+    scanf("%d", &id);
+    for (int i = 0; i < vehicleCount; i++) {
+        if (vehicles[i].id == id) {
+            printf("Found: %s %s Price: %.2f Available: %d\n",
+                   vehicles[i].type, vehicles[i].model,
+                   vehicles[i].price, vehicles[i].available);
+            return;
+        }
+    }
+    printf("Not found.\n");
+}
+
+void searchVehicleByType() {
+    char type[20];
+    printf("Enter type: ");
+    scanf("%s", type);
+    for (int i = 0; i < vehicleCount; i++) {
+        if (strcmp(vehicles[i].type, type) == 0) {
+            printf("%d %s %s %.2f Available:%d\n", vehicles[i].id,
+                   vehicles[i].type, vehicles[i].model,
+                   vehicles[i].price, vehicles[i].available);
+        }
+    }
+}
+
+void displayAllVehicles() {
+    printf("\n--- All Vehicles ---\n");
+    for (int i = 0; i < vehicleCount; i++) {
+        printf("%d %s %s Price: %.2f Available: %d\n", vehicles[i].id,
+               vehicles[i].type, vehicles[i].model,
+               vehicles[i].price, vehicles[i].available);
+    }
+}
+
+void updateVehicleDetails() {
+    int id;
+    printf("Enter vehicle ID to update: ");
+    scanf("%d", &id);
+    for (int i = 0; i < vehicleCount; i++) {
+        if (vehicles[i].id == id) {
+            printf("Enter new type: ");
+            scanf("%s", vehicles[i].type);
+            printf("Enter new model: ");
+            scanf("%s", vehicles[i].model);
+            printf("Enter new price: ");
+            scanf("%f", &vehicles[i].price);
+            printf("Updated.\n");
+            return;
+        }
+    }
+    printf("Not found.\n");
+}
+
+
+void addCustomer() {
+    Customer *c = (Customer*)malloc(sizeof(Customer));
+    c->id = rand() % 1000;
+    printf("Enter name: ");
+    scanf("%s", c->name);
+    printf("Enter phone: ");
+    scanf("%s", c->phone);
+    c->next = customerHead;
+    customerHead = c;
+    printf("Customer added.\n");
+}
+
+void searchCustomer() {
+    int id;
+    printf("Enter customer ID: ");
+    scanf("%d", &id);
+    Customer *c = customerHead;
+    while (c) {
+        if (c->id == id) {
+            printf("Found: %s %s\n", c->name, c->phone);
+            return;
+        }
+        c = c->next;
+    }
+    printf("Not found.\n");
+}
+
+void displayAllCustomers() {
+    Customer *c = customerHead;
+    printf("\n--- Customers ---\n");
+    while (c) {
+        printf("%d %s %s\n", c->id, c->name, c->phone);
+        c = c->next;
+    }
+}
+
+void updateCustomerDetails() {
+    int id;
+    printf("Enter customer ID: ");
+    scanf("%d", &id);
+    Customer *c = customerHead;
+    while (c) {
+        if (c->id == id) {
+            printf("Enter new name: ");
+            scanf("%s", c->name);
+            printf("Enter new phone: ");
+            scanf("%s", c->phone);
+            printf("Updated.\n");
+            return;
+        }
+        c = c->next;
+    }
+    printf("Not found.\n");
+}
+
+void bookVehicle() {
+    int cid, vid;
+    printf("Enter Customer ID: ");
+    scanf("%d", &cid);
+    printf("Enter Vehicle ID: ");
+    scanf("%d", &vid);
+    for (int i = 0; i < vehicleCount; i++) {
+        if (vehicles[i].id == vid && vehicles[i].available) {
+            vehicles[i].available = 0;
+            enqueue(cid, vid);
+            pushHistory(vid);
+            printf("Booked!\n");
+            return;
+        }
+    }
+    printf("Vehicle not available.\n");
+}
+
+void returnVehicle() {
+    int vid;
+    printf("Enter Vehicle ID to return: ");
+    scanf("%d", &vid);
+    for (int i = 0; i < vehicleCount; i++) {
+        if (vehicles[i].id == vid) {
+            vehicles[i].available = 1;
+            printf("Returned.\n");
+            return;
+        }
+    }
+    printf("Not found.\n");
+}
+
+void generateBill() {
+    int vid, days;
+    printf("Enter Vehicle ID: ");
+    scanf("%d", &vid);
+    printf("Enter days rented: ");
+    scanf("%d", &days);
+    for (int i = 0; i < vehicleCount; i++) {
+        if (vehicles[i].id == vid) {
+            printf("Bill = %.2f\n", vehicles[i].price * days);
+            return;
+        }
+    }
+}
+
+void saveDataToFile() {
+    FILE *f = fopen("data.txt", "w");
+    for (int i = 0; i < vehicleCount; i++) {
+        fprintf(f, "%d %s %s %f %d\n", vehicles[i].id, vehicles[i].type,
+                vehicles[i].model, vehicles[i].price, vehicles[i].available);
+    }
+    fclose(f);
+    printf("Data saved.\n");
+}
+
+void loadDataFromFile() {
+    FILE *f = fopen("data.txt", "r");
+    if (!f) return;
+    vehicleCount = 0;
+    while (fscanf(f, "%d %s %s %f %d", &vehicles[vehicleCount].id,
+                  vehicles[vehicleCount].type,
+                  vehicles[vehicleCount].model,
+                  &vehicles[vehicleCount].price,
+                  &vehicles[vehicleCount].available) != EOF) {
+        vehicleCount++;
+    }
+    fclose(f);
+    printf("Data loaded.\n");
+}
+
+void clearBookingQueue() {
+    front = rear = -1;
+    printf("Booking queue cleared.\n");
+}
+
+void exitSystem() {
+    saveDataToFile();
+    printf("Exiting...\n");
+    exit(0);
+}
+
+void displayMenu() {
+    printf("\n--- Vehicle Rental System ---\n");
+    printf("1. Add Vehicle\n");
+    printf("2. Remove Vehicle\n");
+    printf("3. Search Vehicle by ID\n");
+    printf("4. Search Vehicle by Type\n");
+    printf("5. Display All Vehicles\n");
+    printf("6. Book Vehicle\n");
+    printf("7. Return Vehicle\n");
+    printf("8. View Booking History\n");
+    printf("9. Add Customer\n");
+    printf("10. Search Customer\n");
+    printf("11. Display All Customers\n");
+    printf("12. Update Vehicle Details\n");
+    printf("13. Update Customer Details\n");
+    printf("14. Generate Bill\n");
+    printf("15. Save Data\n");
+    printf("16. Load Data\n");
+    printf("17. Clear Booking Queue\n");
+    printf("18. Exit\n");
+}
+
+int main() {
+    initializeSystem();
+    int choice;
+    while (1) {
+        displayMenu();
+        printf("Enter choice: ");
+        scanf("%d", &choice);
+        switch (choice) {
+            case 1: addVehicle(); break;
+            case 2: removeVehicle(); break;
+            case 3: searchVehicleByID(); break;
+            case 4: searchVehicleByType(); break;
+            case 5: displayAllVehicles(); break;
+            case 6: bookVehicle(); break;
+            case 7: returnVehicle(); break;
+            case 8: viewBookingHistory(); break;
+            case 9: addCustomer(); break;
+            case 10: searchCustomer(); break;
+            case 11: displayAllCustomers(); break;
+            case 12: updateVehicleDetails(); break;
+            case 13: updateCustomerDetails(); break;
+            case 14: generateBill(); break;
+            case 15: saveDataToFile(); break;
+            case 16: loadDataFromFile(); break;
+            case 17: clearBookingQueue(); break;
+            case 18: exitSystem(); break;
+            default: printf("Invalid choice.\n");
+        }
+    }
+    return 0;
+}
