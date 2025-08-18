@@ -315,7 +315,7 @@ void exitSystem() {
 }
 
 void displayMenu() {
-    printf("\n--- Vehicle Rental System ---\n");
+    printf(" Vehicle Rental System \n");
     printf("1. Add Vehicle\n");
     printf("2. Remove Vehicle\n");
     printf("3. Search Vehicle by ID\n");
