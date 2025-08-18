@@ -149,7 +149,7 @@ void searchVehicleByType() {
 }
 
 void displayAllVehicles() {
-    printf("\n--- All Vehicles ---\n");
+    printf("All Vehicles\n");
     for (int i = 0; i < vehicleCount; i++) {
         printf("%d %s %s Price: %.2f Available: %d\n", vehicles[i].id,
                vehicles[i].type, vehicles[i].model,
@@ -206,7 +206,7 @@ void searchCustomer() {
 
 void displayAllCustomers() {
     Customer *c = customerHead;
-    printf("\n--- Customers ---\n");
+    printf("Customers\n");
     while (c) {
         printf("%d %s %s\n", c->id, c->name, c->phone);
         c = c->next;
