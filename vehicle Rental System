@@ -76,7 +76,8 @@ front = rear = -1;
 
 
 void pushHistory(int vid) {
-    if (top < MAX - 1) historyStack[++top] = vid;
+    if (top < MAX - 1) 
+historyStack[++top] = vid;
 }
 void viewBookingHistory() {
     printf("\n--- Booking History ---\n");
