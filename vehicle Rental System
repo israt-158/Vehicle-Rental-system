@@ -56,7 +56,8 @@ void clearBookingQueue();
 void exitSystem();
 
 void enqueue(int cid, int vid) {
-    if ((rear + 1) % MAX == front) return;
+    if ((rear + 1) % MAX == front) 
+return;
     if (front == -1) front = 0;
     rear = (rear + 1) % MAX;
     bookingQueue[rear].custId = cid;
@@ -64,9 +65,11 @@ void enqueue(int cid, int vid) {
 }
 Booking dequeue() {
     Booking b = {-1, -1};
-    if (front == -1) return b;
+    if (front == -1)
+return b;
     b = bookingQueue[front];
-    if (front == rear) front = rear = -1;
+    if (front == rear)
+front = rear = -1;
     else front = (front + 1) % MAX;
     return b;
 }
